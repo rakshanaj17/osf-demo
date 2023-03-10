@@ -1,0 +1,21 @@
+p {
+    display: inline;
+  }
+
+div{
+    margin: auto;
+    inline-size: 1000px;
+    overflow-wrap: break-word;
+}
+
+.para{
+  overflow-wrap:  break-word;
+}
+
+.green{
+  color: darkgreen;
+}
+
+.red{
+  color: red;
+}

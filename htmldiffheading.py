@@ -11,8 +11,10 @@ import difflib
 from difflib import SequenceMatcher
 from termcolor import colored
 
-doc_number1="2022-15372"
+doc_number1="2021-24011"
 doc_number2="2022-23918"
+# 2022-15372
+# 2022-23918
 
 def get_content(heading, all_headings, all_content):
     content = []
@@ -73,13 +75,17 @@ new_headings2 = [h for h in headings2 if h not in headings1]
 
 # heading = "Supervision by Nonphysician Practitioners of Hospital and CAH Diagnostic Services Furnished to Outpatients"
 
-heading ="SUPPLEMENTARY MEDICAL INSURANCE (SMI) BENEFITS"
+# heading ="SUPPLEMENTARY MEDICAL INSURANCE (SMI) BENEFITS"
 
 # heading='Proposed Language Changes'
 
 # heading="Request for Public Comment"
 
 # heading = "Therapeutic outpatient hospital or CAH services"
+
+# March 3
+heading = "Services That Will Be Paid Only as Inpatient Services"
+
 doc1_text=""
 
 doc2_text=""
@@ -87,16 +93,17 @@ doc2_text=""
 print(heading)
 
 for element in common_headings:
-    print(element)
+    # print(element)
     if heading in element:
         print(f"{heading} is a substring of {element} in common_headings")
 
-        head1 = soup1.find(['h1','h2', 'h3'],string=element)
-        head2 = soup2.find(['h1','h2', 'h3'],string=element)
+        head1 = soup1.find(['h1','h2', 'h3','h4'],string=element)
+        head2 = soup2.find(['h1','h2', 'h3','h4'],string=element)
 
         # Find all content after Heading 1 until the next heading
         content = head1.find_next_siblings(['p','h2', 'h3','h4','h5','h6'])
         for tag in content:
+            print('1')
             if tag.name.startswith('h3'):
                 break  # Stop if a new heading is encountered
             doc1_text+=(tag.get_text())
@@ -104,6 +111,7 @@ for element in common_headings:
         # Find all content after Heading 1 until the next heading
         content = head2.find_next_siblings(['p','h2','h3','h4','h5','h6'])
         for tag in content:
+            print('2')
             if tag.name.startswith('h3'):
                 break  # Stop if a new heading is encountered
             doc2_text+=(tag.get_text())
@@ -112,67 +120,70 @@ for element in new_headings1:
      if heading in element:
         #   do it
         print(f"{heading} is a substring of {element} in 1st doc only")
-        head1 = soup1.find(['h1','h2', 'h3'],string=element)
+        head1 = soup1.find(['h1','h2', 'h3','h4'],string=element)
 
         # Find all content after Heading 1 until the next heading
         content = head1.find_next_siblings(['p','h2', 'h3','h4','h5','h6'])
         for tag in content:
-            if tag.name.startswith('h'):
+            if tag.name.startswith('h2'):
                 break  # Stop if a new heading is encountered
             doc1_text+=(tag.get_text())
-
 
 for element in new_headings2:
      if heading in element:
         #   do it
         print(f"{heading} is a substring of {element} in 2nd doc only")
 
-        head2 = soup2.find(['h1','h2', 'h3'],string=element)
+        head2 = soup2.find(['h1','h2', 'h3','h4'],string=element)
 
         # Find all content after Heading 1 until the next heading
         content = head2.find_next_siblings(['p','h2', 'h3','h4','h5','h6'])
         for tag in content:
-            if tag.name.startswith('h'):
+            if tag.name.startswith('h2'):
                 break  # Stop if a new heading is encountered
             doc2_text+=(tag.get_text())
 
+print('3')
 
 changes=[]
 
 dmp = dmp_module.diff_match_patch()
 dmp.Diff_Timeout = 2000
 diff = dmp.diff_main(doc1_text,doc2_text)
-# print("DIFF",diff)
-# dmp.diff_cleanupSemantic(diff)
-dmp.diff_cleanupEfficiency(diff)
-
+print('4')
+dmp.diff_cleanupSemantic(diff)
+# dmp.diff_cleanupEfficiency(diff)
+print('5')
 x = dmp.diff_prettyHtml(diff)
 print('###########################################################')
-
 print(x)
 print('###########################################################')
 
 
-# print(doc1_text)
+def add_line_break(paragraph):
+    new_paragraph=""
+    for i in range(len(paragraph)):
+        if paragraph[i] == '•':
+            new_paragraph += '<br> <br>' + paragraph[i]
+        else:
+            new_paragraph += paragraph[i]
+    return new_paragraph
 
-# print(doc2_text)
 
-
-
-
-with open('xdbgs.html', 'w', encoding='utf-8') as f:
+with open('sample1.html', 'w', encoding='utf-8') as f:
     # f.write(x)
     f.write('<html>\n<head>\n<link rel="stylesheet" href="styles.css">\n<title>'+"res3"+'</title>\n</head>\n<body>\n')
     f.write(f'<h2>{heading}</h2>\n')
     f.write('<div class="para changes">\n')
     for line in diff:
-        print(line)
+        # x = add_line_break(line[1])
+        x=line[1]
         if line[0]==0:
-            f.write(f'<p>{line[1]}</p>')
+            f.write(f'<p class="no_change">{x}</p>')
         elif line[0]==-1:
-            f.write(f'\n<p class="red">{line[1]}</p>')
+            f.write(f'\n<p class="red">{x}</p>')
         elif line[0]==1:
-            f.write(f'\n<p class="green">{line[1]}</p>')
+            f.write(f'\n<p class="green">{x}</p>')
     f.write('</div>\n')
     f.write('</body>\n</html>')
 
